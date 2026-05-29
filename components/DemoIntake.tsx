@@ -6,6 +6,7 @@ type Step = "form" | "submitting" | "success";
 
 export default function DemoIntake() {
   const [step, setStep] = useState<Step>("form");
+  const [aiReply, setAiReply] = useState<string>("");
   const [form, setForm] = useState({ name: "", phone: "", service: "", date: "" });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -16,11 +17,17 @@ export default function DemoIntake() {
       return;
     }
     try {
-      await fetch(`${BACKEND_URL}/intake`, {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      const res = await fetch(`${BACKEND_URL}/webhook/demo-intake`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      if (data.reply) setAiReply(data.reply);
     } catch {}
     setStep("success");
   };
@@ -28,6 +35,7 @@ export default function DemoIntake() {
   const reset = () => {
     setStep("form");
     setForm({ name: "", phone: "", service: "", date: "" });
+    setAiReply("");
   };
 
   return (
@@ -107,6 +115,7 @@ export default function DemoIntake() {
                   ✅
                 </div>
                 <h3 className="text-lg font-bold mb-2" style={{ color: "#1B2A4A" }}>Appointment Requested!</h3>
+                {aiReply && <p className="text-sm text-blue-700 font-medium mb-3 px-4 py-3 bg-blue-50 rounded-lg">{aiReply}</p>}
                 <p className="text-sm text-gray-500 mb-1">
                   In a live deployment, {form.phone || "your phone"} would receive an SMS confirmation within 60 seconds.
                 </p>
