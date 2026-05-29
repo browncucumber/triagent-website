@@ -55,11 +55,15 @@ export default function DemoTriage() {
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/triage`, {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      const res = await fetch(`${BACKEND_URL}/webhook/demo-triage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       setResult(await res.json());
     } catch {
       setResult({ category: "info", confidence: 0, response: "Unable to connect to backend." });
