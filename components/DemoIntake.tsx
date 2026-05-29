@@ -27,7 +27,6 @@ export default function DemoIntake() {
       });
       clearTimeout(timeoutId);
       const data = await res.json();
-      console.log("n8n response:", JSON.stringify(data));
       if (data.reply) setAiReply(data.reply);
     } catch {}
     setStep("success");
