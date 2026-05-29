@@ -47,13 +47,17 @@ export default function DemoChat() {
     }
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
       const res = await fetch(`${BACKEND_URL}/webhook/demo-chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMsg.content, history: messages }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       const data = await res.json();
-      setMessages((prev) => [...prev, { role: "assistant", content: data.response }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: data.reply || data.response || "No response received." }]);
     } catch {
       setMessages((prev) => [
         ...prev,
